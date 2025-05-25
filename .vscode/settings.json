@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "heart_rate.h": "c",
+        "esp_log.h": "c",
+        "event_groups.h": "c"
+    }
+}
