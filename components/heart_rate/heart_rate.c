@@ -1,3 +1,21 @@
+/**
+ * @file heart_rate.c
+ * @brief FreeRTOS-based heart rate sensor simulation for smartwatch
+ * 
+ * @author Fikri
+ * @version 0.1
+ * @date 2025-05-26
+ * 
+ * @based_on ESP-IDF v5.5-dev-3618-g7f6e7f4506 
+ *           (https://github.com/espressif/esp-idf/tree/7f6e7f4506)
+ * @license MIT
+ * 
+ * @copyright Copyright (c) 2025 Fikri
+ * 
+ * @note This implementation simulates:
+ *       - Resting heart rate (60-100 BPM)
+ *       - Workout heart rate (80-140 BPM)
+ */
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/event_groups.h"
