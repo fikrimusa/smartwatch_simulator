@@ -3,7 +3,7 @@
  * @brief Smartwatch simulator main application
  * 
  * @author Fikri
- * @version 0.1
+ * @version 0.2
  * @date 2025-05-15
  * @copyright Copyright (c) 2025 Fikri
  * @license MIT
@@ -14,6 +14,7 @@
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
 #include "heart_rate.h"
+#include "step_counter.h"
 #include "esp_log.h"
 
 /* Logging Configuration */
@@ -25,57 +26,97 @@ static const char *TAG = "SMARTWATCH";
 static EventGroupHandle_t state_group;
 
 /**
- * @brief Task to display heart rate data
- * 
- * @param pvParam FreeRTOS task parameter (unused)
- * 
- * @note This task blocks indefinitely waiting for HR updates
+ * @brief Enhanced display task now shows both HR and steps
  */
 static void display_task(void *pvParam) {
     QueueHandle_t hr_queue = get_hr_queue();
     int hr_value;
-
+    uint32_t last_steps = 0;
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    
     while (1) {
-        if (xQueueReceive(hr_queue, &hr_value, portMAX_DELAY) == pdTRUE) {
-            ESP_LOGI(TAG, "Current HR: %d BPM", hr_value);
+        /* Dynamic Polling Rate */
+        const TickType_t xPollingInterval = 
+            (xEventGroupGetBits(state_group) & WORKOUT_BIT) ? 
+            pdMS_TO_TICKS(300) :  // Faster in workout mode
+            pdMS_TO_TICKS(1000);  // Slower in normal mode
+
+        /* Heart Rate Monitoring (Non-blocking) */
+        if (xQueueReceive(hr_queue, &hr_value, 0) == pdTRUE) {  // 0 timeout = non-blocking
+            uint32_t current_steps = get_steps();
+            int32_t step_delta = current_steps - last_steps;
             
-            // Add threshold warnings
+            ESP_LOGI(TAG, "HR: %d BPM | Steps: %"PRIu32" (Δ%"PRId32")", 
+                    hr_value, current_steps, step_delta);
+            
+            last_steps = current_steps;
+
             if (hr_value > 120) {
-                ESP_LOGW(TAG, "High heart rate detected!");
+                ESP_LOGW(TAG, "High heart rate warning!");
             }
-        }   
+        }
+
+        /* Step Milestone Check */
+        EventBits_t bits = xEventGroupGetBits(state_group);
+        if (bits & STEP_ALERT_BIT) {
+            uint32_t current_steps = get_steps();
+            ESP_LOGI(TAG, "Step milestone reached: %"PRIu32" steps", current_steps);
+            
+            if (current_steps >= 50) {
+                reset_steps();
+                last_steps = 0;
+                ESP_LOGI(TAG, "Step counter reset!");
+            }
+            
+            xEventGroupClearBits(state_group, STEP_ALERT_BIT);
+        }
+
+        /* Precision Delay */
+        vTaskDelayUntil(&xLastWakeTime, xPollingInterval);
     }
 }
 
 /**
- * @brief Main application entry point
+ * @brief Main application with full initialization
  */
 void app_main(void) {
     ESP_LOGI(TAG, "Starting smartwatch simulator...");
 
     // Initialize event group
     if ((state_group = xEventGroupCreate()) == NULL) {
-        ESP_LOGE(TAG, "Failed to create event group!");
+        ESP_LOGE(TAG, "Event group creation failed!");
         return;
     }
 
-    // Initialize modules
+    // Initialize all modules
     init_hr_sensor(state_group);
+    init_step_counter(state_group);
 
-    // Create tasks
-    if (xTaskCreate(display_task, "Display", 2048, NULL, 1, NULL) != pdPASS) {
-        ESP_LOGE(TAG, "Failed to create display task!");
+    // Create monitoring task
+    if (xTaskCreate(display_task, 
+                   "Monitor", 
+                   3072,  // Increased stack for additional features
+                   NULL, 
+                   2,     // Higher priority than sensors
+                   NULL) != pdPASS) {
+        ESP_LOGE(TAG, "Monitor task creation failed!");
     }
 
-    // Demo sequence
-    ESP_LOGI(TAG, "Simulating normal mode...");
+    /*** Demo Sequence ***/
+    ESP_LOGW(TAG, "Normal mode started");
     vTaskDelay(pdMS_TO_TICKS(WORKOUT_DELAY_MS));
     
-    ESP_LOGW(TAG, "Activating workout mode...");
+    // Activate workout mode
+    ESP_LOGW(TAG, "=== WORKOUT MODE ACTIVATED ===");
     xEventGroupSetBits(state_group, WORKOUT_BIT);
     
-    vTaskDelay(pdMS_TO_TICKS(NORMAL_MODE_DELAY_MS));
+    // vTaskDelay(pdMS_TO_TICKS(NORMAL_MODE_DELAY_MS));
     
-    ESP_LOGW(TAG, "Returning to normal mode...");
-    xEventGroupClearBits(state_group, WORKOUT_BIT);
+    // // Return to normal
+    // ESP_LOGW(TAG, "=== RETURNING TO NORMAL MODE ===");
+    // xEventGroupClearBits(state_group, WORKOUT_BIT);
+    
+    // Show final stats after 15s
+    vTaskDelay(pdMS_TO_TICKS(15000));
+    ESP_LOGW(TAG, "Session complete! Total steps: %d", get_steps());
 }

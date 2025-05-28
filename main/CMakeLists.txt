@@ -4,6 +4,7 @@ set(SRCS "main.c")
 # List components you're using from main
 set(COMPONENT_REQUIRES 
     heart_rate
+    step_counter
     freertos
 )
 
