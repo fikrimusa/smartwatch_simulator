@@ -30,6 +30,7 @@ smartwatch-simulator/
 │   ├── heart_rate/    # BPM simulation
 │   ├── step_counter/  # Pedometer logic
 │   └── cli/           # Command interface
+│   └── datetime/      # datetime interface
 └── partitions.csv     # Memory allocation
 ```
 
