@@ -17,6 +17,7 @@
 #include "step_counter.h"
 #include "esp_log.h"
 #include "cli.h"
+#include "datetime.h"
 
 /* Logging Configuration */
 static const char *TAG = "SMARTWATCH";
@@ -25,6 +26,23 @@ static const char *TAG = "SMARTWATCH";
 
 /* Global Variables */
 static EventGroupHandle_t state_group;
+
+void time_task(void *pvParam) {
+    datetime_init();
+    
+    while(1) {
+        smartwatch_time_t now = get_current_time();
+        
+        if(now.valid) {
+            ESP_LOGI("CLOCK", "%02d:%02d:%02d",
+                   now.timeinfo.tm_hour,
+                   now.timeinfo.tm_min,
+                   now.timeinfo.tm_sec);
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
 
 /**
  * @brief Enhanced display task now shows both HR and steps
@@ -90,6 +108,7 @@ void app_main(void) {
     init_cli();
     
     // Create tasks
+     xTaskCreate(time_task, "TimeKeeper", 2048, NULL, 1, NULL);
     //xTaskCreate(display_task, "Monitor", 3072, NULL, 2, NULL);
     xTaskCreate(cli_task, "CLI", 2048, NULL, 1, NULL);
     

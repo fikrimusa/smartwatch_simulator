@@ -20,6 +20,7 @@
 #include "driver/uart.h"
 #include <string.h>
 #include <stdio.h>
+#include "datetime.h"
 
 #define CLI_BUFFER_SIZE 128
 static const char *TAG = "CLI";
@@ -48,6 +49,21 @@ void process_command(char *cmd) {
         printf("Available commands:\n");
         printf("reset-steps - Reset step counter\n");
         printf("help - Show this help message\n");
+    }
+    else if (strcmp(cmd, "time") == 0) {
+    smartwatch_time_t t = get_current_time();
+    printf("Current: %02d:%02d:%02d\n", 
+           t.timeinfo.tm_hour,
+           t.timeinfo.tm_min,
+           t.timeinfo.tm_sec);
+    }
+    else if (strncmp(cmd, "settime ", 8) == 0) {
+        struct tm new_time = {0};
+        sscanf(cmd + 8, "%d:%d:%d", 
+            &new_time.tm_hour,
+            &new_time.tm_min,
+            &new_time.tm_sec);
+        set_time(new_time);
     }
     else {
         printf("Unknown command. Type 'help' for options\n");

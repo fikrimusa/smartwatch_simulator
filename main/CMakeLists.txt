@@ -9,6 +9,7 @@ set(COMPONENT_REQUIRES
     console
     driver
     cli
+    datetime
 )
 
 # Register the main application

@@ -5,6 +5,8 @@
         "esp_console.h": "c",
         "driver/uart.h" : "c",
         "event_groups.h": "c",
-        "cli.h": "c"
+        "cli.h": "c",
+        "nvs.h": "c",
+        "nvs_flash.h": "c",
     }
 }
