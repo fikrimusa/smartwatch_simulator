@@ -16,6 +16,7 @@
 #include "heart_rate.h"
 #include "step_counter.h"
 #include "esp_log.h"
+#include "cli.h"
 
 /* Logging Configuration */
 static const char *TAG = "SMARTWATCH";
@@ -80,43 +81,17 @@ static void display_task(void *pvParam) {
  * @brief Main application with full initialization
  */
 void app_main(void) {
-    ESP_LOGI(TAG, "Starting smartwatch simulator...");
-
     // Initialize event group
-    if ((state_group = xEventGroupCreate()) == NULL) {
-        ESP_LOGE(TAG, "Event group creation failed!");
-        return;
-    }
-
-    // Initialize all modules
+    state_group = xEventGroupCreate();
+    
+    // Initialize components
     init_hr_sensor(state_group);
     init_step_counter(state_group);
-
-    // Create monitoring task
-    if (xTaskCreate(display_task, 
-                   "Monitor", 
-                   3072,  // Increased stack for additional features
-                   NULL, 
-                   2,     // Higher priority than sensors
-                   NULL) != pdPASS) {
-        ESP_LOGE(TAG, "Monitor task creation failed!");
-    }
-
-    /*** Demo Sequence ***/
-    ESP_LOGW(TAG, "Normal mode started");
-    vTaskDelay(pdMS_TO_TICKS(WORKOUT_DELAY_MS));
+    init_cli();
     
-    // Activate workout mode
-    ESP_LOGW(TAG, "=== WORKOUT MODE ACTIVATED ===");
-    xEventGroupSetBits(state_group, WORKOUT_BIT);
+    // Create tasks
+    //xTaskCreate(display_task, "Monitor", 3072, NULL, 2, NULL);
+    xTaskCreate(cli_task, "CLI", 2048, NULL, 1, NULL);
     
-    // vTaskDelay(pdMS_TO_TICKS(NORMAL_MODE_DELAY_MS));
-    
-    // // Return to normal
-    // ESP_LOGW(TAG, "=== RETURNING TO NORMAL MODE ===");
-    // xEventGroupClearBits(state_group, WORKOUT_BIT);
-    
-    // Show final stats after 15s
-    vTaskDelay(pdMS_TO_TICKS(15000));
-    ESP_LOGW(TAG, "Session complete! Total steps: %d", get_steps());
+    ESP_LOGI(TAG, "Smartwatch started with simple CLI");
 }

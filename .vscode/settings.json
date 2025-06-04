@@ -2,6 +2,9 @@
     "files.associations": {
         "heart_rate.h": "c",
         "esp_log.h": "c",
-        "event_groups.h": "c"
+        "esp_console.h": "c",
+        "driver/uart.h" : "c",
+        "event_groups.h": "c",
+        "cli.h": "c"
     }
 }

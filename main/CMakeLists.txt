@@ -6,6 +6,9 @@ set(COMPONENT_REQUIRES
     heart_rate
     step_counter
     freertos
+    console
+    driver
+    cli
 )
 
 # Register the main application
