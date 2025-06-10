@@ -18,6 +18,8 @@
 #include "esp_log.h"
 #include "cli.h"
 #include "datetime.h"
+#include "memory_pool.h"
+#include "heap_tracker.h"
 
 /* Logging Configuration */
 static const char *TAG = "SMARTWATCH";
@@ -99,6 +101,9 @@ static void display_task(void *pvParam) {
  * @brief Main application with full initialization
  */
 void app_main(void) {
+    //Initialize memory systems
+    print_memory_stats();
+
     // Initialize event group
     state_group = xEventGroupCreate();
     
@@ -108,8 +113,8 @@ void app_main(void) {
     init_cli();
     
     // Create tasks
-     xTaskCreate(time_task, "TimeKeeper", 2048, NULL, 1, NULL);
-    //xTaskCreate(display_task, "Monitor", 3072, NULL, 2, NULL);
+    xTaskCreate(time_task, "TimeKeeper", 2048, NULL, 1, NULL);
+    xTaskCreate(display_task, "Monitor", 3072, NULL, 2, NULL);
     xTaskCreate(cli_task, "CLI", 2048, NULL, 1, NULL);
     
     ESP_LOGI(TAG, "Smartwatch started with simple CLI");

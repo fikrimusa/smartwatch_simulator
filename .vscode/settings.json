@@ -3,10 +3,14 @@
         "heart_rate.h": "c",
         "esp_log.h": "c",
         "esp_console.h": "c",
-        "driver/uart.h" : "c",
+        "driver/uart.h": "c",
         "event_groups.h": "c",
         "cli.h": "c",
         "nvs.h": "c",
         "nvs_flash.h": "c",
+        "heap_tracker.h": "c",
+        "typeinfo": "c",
+        "esp_heap_caps.h": "c",
+        "esp_system.h": "c"
     }
 }

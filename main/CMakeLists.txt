@@ -10,6 +10,7 @@ set(COMPONENT_REQUIRES
     driver
     cli
     datetime
+    memory
 )
 
 # Register the main application
