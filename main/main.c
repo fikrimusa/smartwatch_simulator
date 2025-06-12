@@ -18,7 +18,6 @@
 #include "esp_log.h"
 #include "cli.h"
 #include "datetime.h"
-#include "memory_pool.h"
 #include "heap_tracker.h"
 
 /* Logging Configuration */

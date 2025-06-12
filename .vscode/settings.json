@@ -11,6 +11,7 @@
         "heap_tracker.h": "c",
         "typeinfo": "c",
         "esp_heap_caps.h": "c",
-        "esp_system.h": "c"
+        "esp_system.h": "c",
+        "task.h": "c"
     }
 }
