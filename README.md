@@ -27,10 +27,12 @@
 smartwatch-simulator/
 ├── main/              # Core application
 ├── components/
-│   ├── heart_rate/    # BPM simulation
-│   ├── step_counter/  # Pedometer logic
 │   └── cli/           # Command interface
+│   ├── common/        # Global header
 │   └── datetime/      # datetime interface
+│   ├── heart_rate/    # BPM simulation
+│   ├── memory/        # Memory monitoring
+│   ├── step_counter/  # Pedometer logic
 └── partitions.csv     # Memory allocation
 ```
 
