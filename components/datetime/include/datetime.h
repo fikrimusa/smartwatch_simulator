@@ -1,6 +1,15 @@
 /**
  * @file datetime.h
- * @brief NVS-backed real-time clock simulation
+ * @brief Smartwatch Time Management Implementation
+ * 
+ * Handles all time-related functionality including:
+ * - NVS-based persistent time storage
+ * - Real-time clock simulation
+ * - Time setting operations
+ * 
+ * @author Fikri
+ * 
+ * @copyright Copyright (c) 2025 Fikri
  */
 #pragma once
 
@@ -17,22 +26,32 @@ typedef struct {
 } smartwatch_time_t;
 
 /**
- * @brief Initialize persistent time storage
+ * @brief Initialize datetime system
+ * 
+ * Performs:
+ * 1. NVS flash initialization
+ * 2. Time loading from persistent storage
+ * 3. Fallback to system time if no stored time exists
+ * 
+ * @note Will erase NVS partition if corrupted and retry initialization
  */
 void datetime_init();
 
 /**
- * @brief Get current time (cached)
+ * @brief Get current smartwatch time
+ * 
+ * Simulates clock ticking by incrementing time by 1 second on each call.
+ * Maintains all time components (hours, minutes, seconds) in valid ranges.
+ * 
+ * @return smartwatch_time_t Current time with validity flag
  */
 smartwatch_time_t get_current_time();
 
 /**
- * @brief Set new time
- * @param new_time Time structure (tm_sec, tm_min, etc.)
+ * @brief Set new time for smartwatch
+ * 
+ * @param new_time struct tm containing new time values. Only valid fields will be updated.
+ * 
+ * @note Persists the new time to NVS flash storage automatically
  */
 void set_time(struct tm new_time);
-
-/**
- * @brief Sync with NTP if WiFi available (simulated)
- */
-void sync_ntp_time();

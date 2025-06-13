@@ -1,3 +1,16 @@
+/**
+ * @file datetime.c
+ * @brief Smartwatch Time Management Implementation
+ * 
+ * Handles all time-related functionality including:
+ * - NVS-based persistent time storage
+ * - Real-time clock simulation
+ * - Time setting operations
+ * 
+ * @author Fikri
+ * 
+ * @copyright Copyright (c) 2025 Fikri
+ */
 #include "datetime.h"
 
 static const char* TAG = "DATETIME";
