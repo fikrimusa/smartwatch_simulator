@@ -1,19 +1,20 @@
-# List your main source files
 set(SRCS "main.c")
 
-# List components you're using from main
 set(COMPONENT_REQUIRES 
-    heart_rate
-    step_counter
-    freertos
-    console
-    driver
+    # Project-specific components
     cli
+    common
     datetime
+    heart_rate
     memory
+    step_counter
+    
+    # ESP-IDF system components
+    freertos    # FreeRTOS depencencies
+    console     # Console I/O
+    driver      # Hardware drivers
 )
 
-# Register the main application
 idf_component_register(
     SRCS "${SRCS}"
     INCLUDE_DIRS "."

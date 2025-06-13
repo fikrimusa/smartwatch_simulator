@@ -9,15 +9,13 @@
  * @copyright Copyright (c) 2025 Fikri
  * @license MIT
  */
+#pragma once
 
-#ifndef HEART_RATE_H
-#define HEART_RATE_H
-
+#include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "freertos/queue.h"
+#include "freertos/event_groups.h"
+#include "event_bits.h"
 
 /**
  * @brief Initializes the heart rate sensor simulation
@@ -34,18 +32,3 @@ void init_hr_sensor(EventGroupHandle_t state_group);
  * @warning Always check for NULL return before using the queue
  */
 QueueHandle_t get_hr_queue();
-
-/**
- * @def WORKOUT_BIT
- * @brief Event bit flag indicating workout mode
- * 
- * @value (1 << 0) Bit position 0 in event group
- * @see EventGroups.h
- */
-#define WORKOUT_BIT (1 << 0) // Bit 0
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* HEART_RATE_H */

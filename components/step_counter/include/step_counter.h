@@ -11,6 +11,8 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/event_groups.h"
+#include "esp_log.h"
+#include "event_bits.h"
 
 /**
  * @brief Initialize step counter module
@@ -28,8 +30,3 @@ uint32_t get_steps();
  * @brief Reset step counter to zero
  */
 void reset_steps();
-
-// Event bit for step alerts
-#define STEP_ALERT_BIT (1 << 2)
-
-#define WORKOUT_BIT (1 << 0) // Bit 0

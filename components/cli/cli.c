@@ -1,29 +1,67 @@
 /**
  * @file cli.c
- * @brief Smartwatch CLI implementation
- * 
+ * @brief Smartwatch Command Line Interface Implementation
+ *
+ * Implements an interactive UART-based CLI for smartwatch control and monitoring.
+ * Supports:
+ * - Step counter management
+ * - Time/date operations
+ * - System information
+ *
  * @author Fikri
- * @version 0.1
- * @date 2025-06-04
- * 
- * @based_on ESP-IDF v5.5-dev-3618-g7f6e7f4506 
- *           (https://github.com/espressif/esp-idf/tree/7f6e7f4506)
- * @license MIT
  * 
  * @copyright Copyright (c) 2025 Fikri
- * 
+ *
+ * @note Hardware Requirements:
+ * - UART0 (default) or configured UART port
+ * - 115200 baud rate (configurable)
+ *
+ * @warning Ensure proper UART GPIO configuration in menuconfig
  */
-
 #include "cli.h"
-#include "step_counter.h"
-#include "esp_log.h"
-#include "driver/uart.h"
-#include <string.h>
-#include <stdio.h>
-#include "datetime.h"
 
 #define CLI_BUFFER_SIZE 128
 static const char *TAG = "CLI";
+
+void cli_task(void *pvParameters) {
+    uint8_t data[CLI_BUFFER_SIZE];
+    int len = 0;
+    
+    printf("\nSmartwatch CLI Ready\n");
+    printf("Type 'help' for command list\n> ");
+    
+    while(1) {
+        // Read character from UART
+        int bytes_read = uart_read_bytes(CONFIG_ESP_CONSOLE_UART_NUM, &data[len], 1, pdMS_TO_TICKS(10));
+        
+        if (bytes_read > 0) {
+            // Handle Enter key
+            if (data[len] == '\r' || data[len] == '\n') {
+                if (len > 0) {
+                    data[len] = '\0'; // Null-terminate
+                    printf("\n");
+                    process_command((char *)data);
+                    len = 0;
+                    printf("> ");
+                }
+            } 
+            // Handle backspace
+            else if (data[len] == '\b') {
+                if (len > 0) {
+                    len--;
+                    printf("\b \b"); // Erase character
+                }
+            }
+            // Normal character
+            else {
+                printf("%c", data[len]); // Echo character
+                len = (len + 1) % CLI_BUFFER_SIZE;
+            }
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+}
 
 void init_cli(void) {
     // Configure UART for basic CLI
@@ -67,45 +105,5 @@ void process_command(char *cmd) {
     }
     else {
         printf("Unknown command. Type 'help' for options\n");
-    }
-}
-
-void cli_task(void *pvParameters) {
-    uint8_t data[CLI_BUFFER_SIZE];
-    int len = 0;
-    
-    printf("\nSmartwatch CLI Ready\n");
-    printf("Type 'help' for command list\n> ");
-    
-    while(1) {
-        // Read character from UART
-        int bytes_read = uart_read_bytes(CONFIG_ESP_CONSOLE_UART_NUM, &data[len], 1, pdMS_TO_TICKS(10));
-        
-        if (bytes_read > 0) {
-            // Handle Enter key
-            if (data[len] == '\r' || data[len] == '\n') {
-                if (len > 0) {
-                    data[len] = '\0'; // Null-terminate
-                    printf("\n");
-                    process_command((char *)data);
-                    len = 0;
-                    printf("> ");
-                }
-            } 
-            // Handle backspace
-            else if (data[len] == '\b') {
-                if (len > 0) {
-                    len--;
-                    printf("\b \b"); // Erase character
-                }
-            }
-            // Normal character
-            else {
-                printf("%c", data[len]); // Echo character
-                len = (len + 1) % CLI_BUFFER_SIZE;
-            }
-        }
-        
-        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }

@@ -1,24 +1,32 @@
 /**
  * @file main.c
- * @brief Smartwatch simulator main application
+ * @brief Smartwatch Simulator Core Application
  * 
  * @author Fikri
- * @version 0.2
- * @date 2025-05-15
+ * 
  * @copyright Copyright (c) 2025 Fikri
- * @license MIT
+ * 
+ * @note System Features:
+ * - Real-time clock display
+ * - Heart rate monitoring (simulated)
+ * - Step counting with milestones
+ * - Interactive CLI interface
+ * - Dynamic workout detection
+ * - Memory monitoring
+ * 
+ * @warning Ensure proper configuration in sdkconfig.h
+ * @attention Set correct task priorities for optimal performance
  */
-
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
-#include "heart_rate.h"
-#include "step_counter.h"
 #include "esp_log.h"
 #include "cli.h"
 #include "datetime.h"
+#include "heart_rate.h"
 #include "heap_tracker.h"
+#include "step_counter.h"
 
 /* Logging Configuration */
 static const char *TAG = "SMARTWATCH";
@@ -28,6 +36,16 @@ static const char *TAG = "SMARTWATCH";
 /* Global Variables */
 static EventGroupHandle_t state_group;
 
+/**
+ * @brief Real-Time Clock Management Task
+ * 
+ * Maintains and displays current time with:
+ * - Automatic time synchronization
+ * - Continuous time updates
+ * - Validation checking
+ * 
+ * @param pvParam Unused task parameter
+ */
 void time_task(void *pvParam) {
     datetime_init();
     
@@ -46,7 +64,15 @@ void time_task(void *pvParam) {
 }
 
 /**
- * @brief Enhanced display task now shows both HR and steps
+ * @brief System Monitoring Task
+ * 
+ * Handles:
+ * - Dynamic heart rate display
+ * - Step counting with delta calculation
+ * - Milestone detection
+ * - Workout mode adaptation
+ * 
+ * @param pvParam Unused task parameter
  */
 static void display_task(void *pvParam) {
     QueueHandle_t hr_queue = get_hr_queue();
@@ -97,21 +123,25 @@ static void display_task(void *pvParam) {
 }
 
 /**
- * @brief Main application with full initialization
+ * @brief Main Application Entry Point
+ * 
+ * Initializes all system components and starts core tasks:
+ * 1. Memory system diagnostics
+ * 2. Event group creation
+ * 3. Peripheral initialization
+ * 4. Task creation with appropriate priorities
  */
 void app_main(void) {
-    //Initialize memory systems
+    // System initialization
     print_memory_stats();
-
-    // Initialize event group
     state_group = xEventGroupCreate();
     
-    // Initialize components
+    // Component initialization
     init_hr_sensor(state_group);
     init_step_counter(state_group);
     init_cli();
     
-    // Create tasks
+    // Task creation (ordered by priority)
     xTaskCreate(time_task, "TimeKeeper", 2048, NULL, 1, NULL);
     xTaskCreate(display_task, "Monitor", 3072, NULL, 2, NULL);
     xTaskCreate(cli_task, "CLI", 2048, NULL, 1, NULL);

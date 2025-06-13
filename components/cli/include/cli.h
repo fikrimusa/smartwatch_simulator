@@ -1,24 +1,42 @@
 /**
  * @file cli.h
- * @brief Smartwatch CLI implementation
- * 
+ * @brief Smartwatch Command Line Interface Implementation
+ *
+ * Provides interactive command processing for smartwatch functions including:
+ * - Step counter control and monitoring
+ * - System configuration
+ * - Real-time clock operations
+ * - Debugging utilities
+ *
  * @author Fikri
- * @version 0.1
- * @date 2025-06-04
  * 
  * @copyright Copyright (c) 2025 Fikri
- * @license MIT
+ *
+ * @note Features:
+ * - UART-based command input
+ * - Real-time command processing
+ * - Integrated with step counter and RTC modules
+ * - Thread-safe operation using FreeRTOS primitives
+ *
+ * @warning Requires UART driver initialization prior to use
+ * @attention Set correct UART pins in menuconfig
  */
-
-#ifndef CLI_H
-#define CLI_H
+#pragma once
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "step_counter.h"
+#include "esp_log.h"
+#include "driver/uart.h"
+#include <string.h>
+#include <stdio.h>
+#include "datetime.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/**
+ * @brief CLI task that handles user input
+ * @param pvParameters Task parameters (unused)
+ */
+void cli_task(void *pvParameters);
 
 /**
  * @brief Initialize the CLI interface
@@ -30,15 +48,3 @@ void init_cli(void);
  * @param cmd The command string to process
  */
 void process_command(char *cmd);
-
-/**
- * @brief CLI task that handles user input
- * @param pvParameters Task parameters (unused)
- */
-void cli_task(void *pvParameters);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* CLI_H */

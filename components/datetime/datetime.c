@@ -1,7 +1,4 @@
 #include "datetime.h"
-#include "nvs_flash.h"
-#include "nvs.h"
-#include "esp_log.h"
 
 static const char* TAG = "DATETIME";
 static smartwatch_time_t current_time = {0};

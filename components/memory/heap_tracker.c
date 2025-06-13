@@ -1,7 +1,21 @@
-#include "esp_heap_caps.h"
+/**
+ * @file heap_tracker.c
+ * @brief Memory monitoring for Smartwatch
+ * 
+ * @author Fikri
+ * 
+ * @copyright Copyright (c) 2025 Fikri
+ * 
+ * @note This implementation combines:
+ *       - Memory monitoring functionality (internal/SPIRAM)
+ *       - Step counter simulation with:
+ *         * 2s/step in normal walking mode
+ *         * 0.5s/step in workout mode
+ *         * Milestone alerts every 10 steps
+ * 
+ * @warning When using SPIRAM, ensure CONFIG_SPIRAM is enabled in menuconfig
+ */
 #include "heap_tracker.h"
-#include "esp_system.h"
-#include "esp_log.h"
 
 void print_memory_stats() {
     ESP_LOGI("MEM", "---------------------");
