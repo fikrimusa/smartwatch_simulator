@@ -24,8 +24,12 @@
 static const char *TAG = "CLI";
 
 void cli_task(void *pvParameters) {
-    uint8_t data[CLI_BUFFER_SIZE];
+    static uint8_t data[CLI_BUFFER_SIZE];
     int len = 0;
+    
+    // Stack monitoring initialization
+    UBaseType_t watermark = uxTaskGetStackHighWaterMark(NULL);
+    ESP_LOGI(TAG, "Initial stack: %u bytes", watermark);
     
     printf("\nSmartwatch CLI Ready\n");
     printf("Type 'help' for command list\n> ");
@@ -59,49 +63,81 @@ void cli_task(void *pvParameters) {
             }
         }
         
+        // Periodic stack check (every 100 iterations)
+        static int check_counter = 0;
+        if (++check_counter >= 100) {
+            check_counter = 0;
+            watermark = uxTaskGetStackHighWaterMark(NULL);
+            if (watermark < 512) { // Warning threshold
+                ESP_LOGW(TAG, "Low stack: %u bytes remaining", watermark);
+            }
+        }
+        
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
 void init_cli(void) {
-    // Configure UART for basic CLI
     uart_config_t uart_config = {
         .baud_rate = 115200,
         .data_bits = UART_DATA_8_BITS,
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
+        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
+        .source_clk = UART_SCLK_DEFAULT
     };
-    uart_param_config(CONFIG_ESP_CONSOLE_UART_NUM, &uart_config);
-    uart_driver_install(CONFIG_ESP_CONSOLE_UART_NUM, CLI_BUFFER_SIZE * 2, 0, 0, NULL, 0);
+
+    const int rx_buffer_size = 256;
+    const int tx_buffer_size = 0;
     
-    ESP_LOGI(TAG, "CLI initialized");
+    // Configure UART parameters
+    ESP_ERROR_CHECK(uart_param_config(CONFIG_ESP_CONSOLE_UART_NUM, &uart_config));
+    
+    // Install UART driver with valid buffer sizes
+    ESP_ERROR_CHECK(uart_driver_install(CONFIG_ESP_CONSOLE_UART_NUM, 
+                                      rx_buffer_size,
+                                      tx_buffer_size,
+                                      0,      // Queue size (0 to disable)
+                                      NULL,   // Queue handle
+                                      0));    // Interrupt flags
 }
 
 void process_command(char *cmd) {
-    if (strcmp(cmd, "reset-steps") == 0) {
+    // Use strtok_r instead of strcmp for better memory handling
+    char *saveptr;
+    char *token = strtok_r(cmd, " ", &saveptr);
+    
+    if (token == NULL) return;
+    
+    if (strcmp(token, "reset-steps") == 0) {
         reset_steps();
         printf("Steps reset to 0\n");
-    } 
-    else if (strcmp(cmd, "help") == 0) {
+    }
+    else if (strcmp(token, "help") == 0) {
         printf("Available commands:\n");
         printf("reset-steps - Reset step counter\n");
         printf("help - Show this help message\n");
     }
-    else if (strcmp(cmd, "time") == 0) {
-    smartwatch_time_t t = get_current_time();
-    printf("Current: %02d:%02d:%02d\n", 
-           t.timeinfo.tm_hour,
-           t.timeinfo.tm_min,
-           t.timeinfo.tm_sec);
+    else if (strcmp(token, "time") == 0) {
+        smartwatch_time_t t = get_current_time();
+        printf("Current: %02d:%02d:%02d\n", 
+               t.timeinfo.tm_hour,
+               t.timeinfo.tm_min,
+               t.timeinfo.tm_sec);
     }
-    else if (strncmp(cmd, "settime ", 8) == 0) {
-        struct tm new_time = {0};
-        sscanf(cmd + 8, "%d:%d:%d", 
-            &new_time.tm_hour,
-            &new_time.tm_min,
-            &new_time.tm_sec);
-        set_time(new_time);
+    else if (strcmp(token, "settime") == 0) {
+        token = strtok_r(NULL, " ", &saveptr);
+        if (token) {
+            struct tm new_time = {0};
+            if (sscanf(token, "%d:%d:%d", 
+                      &new_time.tm_hour,
+                      &new_time.tm_min,
+                      &new_time.tm_sec) == 3) {
+                set_time(new_time);
+            } else {
+                printf("Invalid time format\n");
+            }
+        }
     }
     else {
         printf("Unknown command. Type 'help' for options\n");

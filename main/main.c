@@ -144,7 +144,7 @@ void app_main(void) {
     // Task creation (ordered by priority)
     xTaskCreate(time_task, "TimeKeeper", 2048, NULL, 1, NULL);
     xTaskCreate(display_task, "Monitor", 3072, NULL, 2, NULL);
-    xTaskCreate(cli_task, "CLI", 2048, NULL, 1, NULL);
+    xTaskCreate(cli_task, "CLI", 4096, NULL, 1, NULL);
     
     ESP_LOGI(TAG, "Smartwatch started with simple CLI");
 }
